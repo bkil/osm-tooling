@@ -1,0 +1,13 @@
+Multi-licensed under ODbl/GPL v2+/Apache v2/ISC/BSD 3-clause.
+
+We aim to enable maximum potential for reuse across OSM projects.
+
+Hence code in this repository may be reused under the terms of one of the
+following licenses up to the discretion of the user:
+* The GNU GPL v2.0 or later https://josm.openstreetmap.de/browser/josm/trunk/LICENSE
+* The GNU GPL v3 https://github.com/osmandapp/Osmand/blob/master/LICENSE
+* Apache v2 https://github.com/MarcusWolschon/osmeditor4android/blob/master/src/main/assets/LICENSE.txt
+* ISC https://github.com/openstreetmap/iD/blob/develop/LICENSE.md
+* ISC https://github.com/bryceco/GoMap/blob/master/LICENSE.md
+* BSD 3-clause https://github.com/osmlab/name-suggestion-index/blob/master/LICENSE.md
+* ODbL https://opendatacommons.org/licenses/odbl/
