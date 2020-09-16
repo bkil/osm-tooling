@@ -23,6 +23,7 @@ tartoz10_() {
   # pdftotext -f 1 -l 2 -bbox "$PDF"
 
   pdftotext \
+    -eol unix \
     -f "$PAGEFROM" -l "$PAGETO" \
     -x 421 -y 0 -W `expr 657 - 421` -H "$MAXHEIGHT" \
     "$PDF"
@@ -54,6 +55,7 @@ tartoz100() {
   wget -nc "https://www.nav.gov.hu/data/cms160318/$PDF"
 
   pdftotext \
+    -eol unix \
     -x 305 -y 0 -W 210 -H 842 \
     "$PDF"
 
