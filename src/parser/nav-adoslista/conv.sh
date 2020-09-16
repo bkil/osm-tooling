@@ -92,7 +92,7 @@ jelentos() {
   lowriter \
     --headless \
     --convert-to csv:"Text - txt - csv (StarCalc)":"44,34,0,1,,0" \
-    "$XLS"
+    "$XLS" 2>/dev/null >&1
 
   cat "$CSV" |
   sed -nr '
