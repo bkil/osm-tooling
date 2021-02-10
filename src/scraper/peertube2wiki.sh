@@ -5,6 +5,7 @@
 
 main() {
   CACHE="cache/"
+  NOUPDATE=""
   mkdir -p "$CACHE" || exit 1
 
     cat <<EOF
@@ -33,13 +34,21 @@ EOF
 wget2() {
   local OUT="$1"
   shift 1
-  [ -f "$OUT" ] && return
-  sleep 1
+  sleep 3
   wget \
     --quiet \
     --user-agent="github.com/bkil/osm-tooling $ME $MTIME" \
-    --no-clobber \
     --output-document="$OUT" \
+    "$@"
+}
+
+wget2nc() {
+  local OUT="$1"
+  shift 1
+  [ -f "$OUT" ] && return
+  wget2nc \
+    "$OUT" \
+    --no-clobber \
     "$@"
 }
 
@@ -50,9 +59,13 @@ proc_chan() {
   local OUTSEARCH="$CACHE/channel-$CHAN.json"
   local TMP="tmp.1.json"
   local TMP2="tmp.2.json"
-  wget2 \
-    "$OUTSEARCH" \
-    "https://tube.grin.hu/api/v1/video-channels/$CHAN/videos?start=0&count=100&sort=-publishedAt"
+  local CHANURL="https://tube.grin.hu/api/v1/video-channels/$CHAN/videos?start=0&count=100&sort=-publishedAt"
+
+  if [ -n "$NOUPDATE" ]; then
+    wget2nc "$OUTSEARCH" "$CHANURL"
+  else
+    wget2 "$OUTSEARCH" "$CHANURL"
+  fi
 
 # TODO:
 # https://tube.grin.hu/api/v1/videos/$ID/captions
@@ -63,7 +76,7 @@ proc_chan() {
   sed -nr "s~^\| TAGS:https://tube.grin.hu/videos/watch/(.*)$~\1~ ; T e; p; :e" "$TMP2" |
   while read ID; do
     local OUTMETA="$CACHE/video-$ID.meta.json"
-    wget2 \
+    wget2nc \
       "$OUTMETA" \
       "https://tube.grin.hu/api/v1/videos/$ID"
     local TAGS="`jq --raw-output '.tags | @text' "$OUTMETA" | sed 's~["[]~~g; s~]~~g ; s~,~& ~g'`"
@@ -91,6 +104,7 @@ json2wiki_table() {
 '| \(.account.displayName)\n'\
 '| \(.description // "")\n'\
 '"' |
+#'| \(.language.label // "")\n'
   sed '
     s~\"~"~g
     '
@@ -108,8 +122,8 @@ openstreetmap
 openstreetmap_hour
 ottermage
 openstreetmap_hungary
-linux
 EOF
+#linux
 }
 
 example_search_result_json() {
