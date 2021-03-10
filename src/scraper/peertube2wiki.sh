@@ -22,8 +22,8 @@ main() {
 EOF
 
   list_channels |
-  while read CHAN; do
-    proc_chan "$CHAN"
+  while read SERVER CHAN; do
+    proc_chan "$SERVER" "$CHAN"
   done
 
   cat <<EOF
@@ -46,20 +46,21 @@ wget2nc() {
   local OUT="$1"
   shift 1
   [ -f "$OUT" ] && return
-  wget2nc \
+  wget2 \
     "$OUT" \
     --no-clobber \
     "$@"
 }
 
 proc_chan() {
-  local CHAN="$1"
+  local SERVER="$1"
+  local CHAN="$2"
   local ME="`basename "$0"`"
   local MTIME="`get_mtime "$ME"`"
-  local OUTSEARCH="$CACHE/channel-$CHAN.json"
+  local OUTSEARCH="$CACHE/channel-$SERVER-$CHAN.json"
   local TMP="tmp.1.json"
   local TMP2="tmp.2.json"
-  local CHANURL="https://tube.grin.hu/api/v1/video-channels/$CHAN/videos?start=0&count=100&sort=-publishedAt"
+  local CHANURL="https://tube.$SERVER/api/v1/video-channels/$CHAN/videos?start=0&count=100&sort=-publishedAt"
 
   if [ -n "$NOUPDATE" ]; then
     wget2nc "$OUTSEARCH" "$CHANURL"
@@ -71,16 +72,16 @@ proc_chan() {
 # https://tube.grin.hu/api/v1/videos/$ID/captions
 # https://tube.grin.hu/api/v1/videos/$ID/description
 
-  json2wiki_table < "$OUTSEARCH" |
+  json2wiki_table "$SERVER" < "$OUTSEARCH" |
   tee "$TMP" > "$TMP2"
-  sed -nr "s~^\| TAGS:https://tube.grin.hu/videos/watch/(.*)$~\1~ ; T e; p; :e" "$TMP2" |
+  sed -nr "s~^\| TAGS:https://tube.$SERVER/videos/watch/(.*)$~\1~ ; T e; p; :e" "$TMP2" |
   while read ID; do
     local OUTMETA="$CACHE/video-$ID.meta.json"
     wget2nc \
       "$OUTMETA" \
-      "https://tube.grin.hu/api/v1/videos/$ID"
+      "https://tube.$SERVER/api/v1/videos/$ID"
     local TAGS="`jq --raw-output '.tags | @text' "$OUTMETA" | sed 's~["[]~~g; s~]~~g ; s~,~& ~g'`"
-    sed -r --in-place "s~TAGS:https://tube.grin.hu/videos/watch/$ID~$TAGS~" "$TMP"
+    sed -r --in-place "s~TAGS:https://tube.$SERVER/videos/watch/$ID~$TAGS~" "$TMP"
   done
 
   cat "$TMP"
@@ -88,6 +89,7 @@ proc_chan() {
 }
 
 json2wiki_table() {
+  local SERVER="$1"
   jq \
   --raw-output \
 '.data[] |'\
@@ -96,9 +98,9 @@ json2wiki_table() {
 '|-\n'\
 '| \(.originallyPublishedAt // "")\n'\
 '| \(.publishedAt)\n'\
-'| [https://tube.grin.hu/videos/watch/\(.uuid) \(.name)]\n'\
+'| [https://tube.'"$SERVER"'/videos/watch/\(.uuid) \(.name)]\n'\
 '| \(.category.label // "")\n'\
-'| TAGS:https://tube.grin.hu/videos/watch/\(.uuid)\n'\
+'| TAGS:https://tube.'"$SERVER"'/videos/watch/\(.uuid)\n'\
 '| \(.licence.label // "")\n'\
 '| \(.duration)\n'\
 '| \(.account.displayName)\n'\
@@ -118,10 +120,11 @@ get_mtime() {
 
 list_channels() {
   cat << EOF
-openstreetmap
-openstreetmap_hour
-ottermage
-openstreetmap_hungary
+grin.hu openstreetmap
+grin.hu openstreetmap_hour
+grin.hu ottermage
+grin.hu openstreetmap_hungary
+systest.eu openstreetmap_hungary
 EOF
 #linux
 }
