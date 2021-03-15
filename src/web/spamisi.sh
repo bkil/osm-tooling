@@ -96,9 +96,9 @@ EOF
     s~^.*<body>~~
     s~</body></html>$~~
 
-    s~ id=\"~ id=\"$NAME--~g
+    s~ id=\"~ id=\"$NAME---~g
 
-    s~(<a href=\"#)([^\"])~\1$NAME--\2~g
+    s~(<a href=\"#)([^\"])~\1$NAME---\2~g
 
     s~(<a href=\"#)(\")~\1$NAME\2~g
 
@@ -173,8 +173,8 @@ get_js() {
 EOF
 
   sed -r "
-    s~(getElementById\(\")(daily\")~\1osm--housenumber-stats--hungary--\2~
-    s~(uriPrefix=\"/)osm(\")~\1spamisi\2~
+    s~((getElementById|:[{]display:!0,(text|labelString):k)\(\")~\1osm--housenumber-stats--hungary---~g
+    s~(uriPrefix=\"/)osm(\")~\1spamisi\2~g
   " "$OUT/html/osm/static/bundle.js"
 
   cat << EOF
