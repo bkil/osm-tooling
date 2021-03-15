@@ -158,7 +158,7 @@ EOF
 
 .title {
   color: #fff;
-  background-color: #f00;
+  background-color: #707;
 }
 
 .title-loading {
@@ -200,6 +200,17 @@ get_page_switching_style() {
 EOF
 }
 
+get_loading_finished_style() {
+  cat << EOF
+<style type="text/css">
+.title {
+  color: #fff;
+  background-color: #f00;
+}
+</style>
+EOF
+}
+
 get_js() {
   cat << EOF
 <script>
@@ -222,6 +233,7 @@ EOF
 
   get_page_switching_style
   get_js
+  get_loading_finished_style
 
   cat << EOF
 </body></html>
