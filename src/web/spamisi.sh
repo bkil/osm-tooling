@@ -22,7 +22,8 @@ download() {
 # TODO: osm/static/relations.json (via main.ts)
 #    --timestamping
 # --reject-regex "^${URLBASE}(osm/(street(-housenumbers)?|filter-for/refcounty)/.*|.*/update-result)$"
-# --accept-regex "^${URLBASE}(robots\.txt|osm/(index\.html|static/[^/]+|([^/]+/balatonalmadi/view-[^/]+)|(filter-for|housenumber-stats)/.*|(additional|missing)-[^/]+/[^/]+/view-result))$" \
+# --accept-regex "^${URLBASE}(robots\.txt|osm/(index\.html|static/[^/]+|([^/]+/balatonalmadi/view-[^/]+)|(filter-for|housenumber-stats)/.*|(additional|missing)-[^/]+/[^/]+/view-result))$"
+
   local URL="$1"
   local URLBASE="$2"
   local HTML="$3"
@@ -81,6 +82,7 @@ get_page() {
 
   local TITLE="`sed -nr "s~^.*<title>(.*)</title>.*$~\1~ ; T e; p; :e" "$FILE"`"
   [ -n "$TITLE" ] || local TITLE="$NAME"
+
   cat << EOF
 
 <div id="$NAME" class="page">
@@ -111,9 +113,9 @@ EOF
   "
 
   else
-    echo "<pre>"
+    printf "<pre>"
     cat "$FILE"
-    echo "</pre>"
+    printf "</pre>"
   fi
   
   cat << EOF
@@ -128,7 +130,7 @@ get_header() {
 <!DOCTYPE html>
 <html lang=""><head>
 <link rel="icon" type="image/png" sizes="64x64" href="favicon.ico">
-<title>SPA-Misi</title><meta charset="UTF-8" /><style>
+<title>SPA-Misi</title><meta charset="UTF-8" /><style type="text/css">
 EOF
 
   cat "$OUT/html/osm/static/osm.css"
