@@ -126,7 +126,9 @@ get_header() {
 
   cat << EOF
 <!DOCTYPE html>
-<html lang=""><head><title>SPA-Misi</title><meta charset="UTF-8" /><style>
+<html lang=""><head>
+<link rel="icon" type="image/png" sizes="64x64" href="favicon.ico">
+<title>SPA-Misi</title><meta charset="UTF-8" /><style>
 EOF
 
   cat "$OUT/html/osm/static/osm.css"
