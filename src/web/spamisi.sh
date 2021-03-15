@@ -110,6 +110,8 @@ EOF
     s~^.*<body>~~
     s~</body></html>$~~
 
+    s~ id=\"(filter-based-on-position|_daily|_dailytotal|_monthly|_monthlytotal|_topusers|_topcities|_usertotal|_progress)\"~& class=\"nojs-hide\"~g
+
     s~ id=\"~ id=\"$NAME---~g
 
     s~(<a href=\"#)([^\"])~\1$NAME---\2~g
@@ -181,6 +183,13 @@ EOF
 }
 </style>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style id="style-nojs-hide">
+.nojs-hide {
+  display: none;
+}
+</style>
+
 </head><body>
 <div class="pages">
 EOF
@@ -214,6 +223,7 @@ EOF
 get_js() {
   cat << EOF
 <script>
+document.getElementById("style-nojs-hide").textContent = "";
 EOF
 
   sed -r "
