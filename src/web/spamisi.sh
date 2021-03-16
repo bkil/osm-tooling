@@ -12,7 +12,7 @@ main() {
 
   {
     get_header "$OUT"
-    get_pages "$OUT" "$URL" "$HTML"
+    get_pages "$OUT" "$URL" "$HTML" "$URLBASE"
     get_footer
   } > "$OUT/index.html"
 }
@@ -49,13 +49,14 @@ get_pages() {
   local OUT="$1"
   local URL="$2"
   local HTML="$3"
+  local URLBASE="$4"
 
   local IDS="$OUT/downloaded-ids.txt"
 
   local MAIN="`echo "$URL" | sed "s~^.*://[^/]*/~$HTML/~"`"
 
   get_file_list "$HTML" "$MAIN" |
-  cut -d " " -f 2 |
+  sed "s~^$HTML/~~ ; s~/index\.html$~~ ; s~\.html$~~" |
   sort -u > "$IDS"
 
   local IDREGEX="`sed ":l; N; s~\n~|~g; t l" "$IDS"`"
@@ -63,42 +64,37 @@ get_pages() {
   get_file_list "$HTML" "$MAIN" |
   {
     local ISLOADING="1"
-    while read FILE NAME; do
-      get_page "$NAME" "$FILE" "$ISLOADING"
+    while read FILE; do
+      get_page "$FILE" "$ISLOADING"
       local ISLOADING=""
     done
   } |
-  sed -r "s~(<a class=\")red(link\" href=\"#($IDREGEX)\")~\1\2~g"
+  post_process_page "$IDREGEX" "$URLBASE"
 }
 
 get_file_list() {
   local HTML="$1"
   local MAIN="$2"
 
-  {
-    # hack: this is shown while the document is being transferred
-    echo "$MAIN"
+  # hack: this is shown while the document is being transferred
+  echo "$MAIN"
 
-    find "$HTML" -type f |
-    sort |
-    fgrep -v "$MAIN" |
-    grep -E "^$HTML/osm/((([^/]+/balatonalmadi)|filter-for|housenumber-stats)/|(additional|missing)-[^/]+/[^/]+/view-result)" |
-    grep -v "/update-result$"
+  find "$HTML" -type f |
+  sort |
+  fgrep -v "$MAIN" |
+  grep -E "^$HTML/osm/((([^/]+/balatonalmadi)|filter-for|housenumber-stats)/|(additional|missing)-[^/]+/[^/]+/view-result)" |
+  grep -v "/update-result$"
 
-    # hack: this is showed via `get_page_switching_style` after having loaded
-    echo "$MAIN"
-  } |
-  while read FILE; do
-    local NAME="`echo "$FILE" | sed "s~^$HTML/~~ ; s~/index.html$~~ ; s~\.html$~~ ; s~/~--~g"`"
-    echo "$FILE $NAME"
-  done
-
+  # hack: this is showed via `get_page_switching_style` after having loaded
+  echo "$MAIN"
 }
 
 get_page() {
-  local NAME="$1"
-  local FILE="$2"
-  local ISLOADING="$3"
+  local FILE="$1"
+  local ISLOADING="$2"
+
+  local ENDPOINT="`echo "$FILE" | sed "s~^$HTML/~~ ; s~/index.html$~~ ; s~\.html$~~"`"
+  local NAME="`echo "$ENDPOINT" | sed "s~/~--~g"`"
 
   local IDNAME="$NAME"
   [ -n "$ISLOADING" ] &&
@@ -124,25 +120,13 @@ EOF
 
   fgrep -v "<!DOCTYPE html>" "$FILE" |
   sed -r "
-    s~^.*<body>~~
-    s~</body></html>$~~
-
-    s~ id=\"(filter-based-on-position|_daily|_dailytotal|_monthly|_monthlytotal|_topusers|_topcities|_usertotal|_progress)\"~& class=\"nojs-hide\"~g
-
     s~ id=\"~ id=\"$IDNAME---~g
 
     s~(<a href=\"#)([^\"])~\1$IDNAME---\2~g
 
     s~(<a href=\"#)(\")~\1$IDNAME\2~g
 
-    s~(<a href=\"/[^\"]*)/(\")~\1\2~g
-    t l
-    :l
-    s~(<a href=\"/[^\"/]*)/~\1--~g
-    t l
-
-    s~(<a)( href=\")/($NAME\")~\1 class=\"selflink\"\2#\3~g
-    s~(<a)( href=\")/([^\"/]*\")~\1 class=\"redlink\"\2#\3~g
+    s~(<a)( href=\"/${ENDPOINT}/?\")~\1 class=\"selflink\"\2~g
   "
 
   else
@@ -154,6 +138,32 @@ EOF
   cat << EOF
 </div>
 EOF
+}
+
+post_process_page() {
+  local IDREGEX="$1"
+  local URLBASE="$2"
+
+  sed -r "
+    s~^.*<body>~~
+    s~</body></html>$~~
+
+    s~ id=\"[^\"]*---(filter-based-on-position|_daily|_dailytotal|_monthly|_monthlytotal|_topusers|_topcities|_usertotal|_progress)\"~& class=\"nojs-hide\"~g
+
+    s~(<a( class=\"selflink\")? href=\"/[^\"]*)/(\")~\1\3~g
+
+    s~(<a)( href=\"[^#/][^\"]*\">)~\1 class=\"redlink\" target=\"_blank\"\2~g
+
+    s~(<a)( href=\"/)~\1 class=\"redlink\"\2~g
+    s~(<a class=\")red(link\" href=\"/($IDREGEX)\")~\1\2~g
+    s~(<a class=\"redlink\")( href=\")/([^\"]*\")~\1 target=\"_blank\"\2${URLBASE}\3~g
+
+    t l
+    :l
+    s~(<a class=\"(self)?link\" href=\"/[^\"/]*)/~\1--~g
+    t l
+    s~(<a class=\"(self)?link\" href=\")/~\1#~g
+  "
 }
 
 get_header() {
