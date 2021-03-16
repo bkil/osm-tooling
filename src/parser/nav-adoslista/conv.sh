@@ -1,9 +1,10 @@
 #!/bin/sh
 
 main() {
-  jelentos > jelentos.csv
-  tartoz100 > tartoz100.csv
-  tartoz10 > tartoz10.csv
+  mkdir -p out
+  jelentos > out/jelentos.csv
+  tartoz100 > out/tartoz100.csv
+  tartoz10 > out/tartoz10.csv
 }
 
 tartoz10() {
