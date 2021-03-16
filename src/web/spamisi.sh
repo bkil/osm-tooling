@@ -40,6 +40,7 @@ download() {
     --no-clobber \
     --backups=0 \
     --continue \
+    --compression=auto \
     --accept-regex "^${URLBASE}(robots\.txt|osm/(index\.html|static/[^/]+|([^/]+/balatonalmadi/view-[^/]+)|(filter-for|housenumber-stats)/.*|(additional|missing)-[^/]+/balatonalmadi/view-result))$" \
     "$URL"
 }
