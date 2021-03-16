@@ -56,8 +56,28 @@ get_pages() {
 
   local MAIN="`echo "$URL" | sed "s~^.*://[^/]*/~$HTML/~"`"
 
+  get_file_list "$HTML" "$MAIN" |
   {
-    echo "$MAIN" 1
+    local ISLOADING="1"
+    while read FILE NAME; do
+      echo "$NAME" >> "$IDS"
+
+      get_page "$NAME" "$FILE" "$ISLOADING"
+      local ISLOADING=""
+    done
+  } > "$TMP"
+  local IDREGEX="`sed ":l; N; s~\n~|~g; t l" "$IDS"`"
+  sed -r "s~(<a class=\")red(link\" href=\"#($IDREGEX)\")~\1\2~g" "$TMP"
+  rm "$TMP"
+}
+
+get_file_list() {
+  local HTML="$1"
+  local MAIN="$2"
+
+  {
+    # hack: this is shown while the document is being transferred
+    echo "$MAIN"
 
     find "$HTML" -type f |
     sort |
@@ -65,19 +85,14 @@ get_pages() {
     grep -E "^$HTML/osm/((([^/]+/balatonalmadi)|filter-for|housenumber-stats)/|(additional|missing)-[^/]+/[^/]+/view-result)" |
     grep -v "/update-result$"
 
-    # hack: show something during loading and make `get_page_switching_style` work
+    # hack: this is showed via `get_page_switching_style` after having loaded
     echo "$MAIN"
   } |
-  while read FILE ISLOADING; do
+  while read FILE; do
     local NAME="`echo "$FILE" | sed "s~^$HTML/~~ ; s~/index.html$~~ ; s~\.html$~~ ; s~/~--~g"`"
+    echo "$FILE $NAME"
+  done
 
-    echo "$NAME" >> "$IDS"
-
-    get_page "$NAME" "$FILE" "$ISLOADING"
-  done > "$TMP"
-  local IDREGEX="`sed ":l; N; s~\n~|~g; t l" "$IDS"`"
-  sed -r "s~(<a class=\")red(link\" href=\"#($IDREGEX)\")~\1\2~g" "$TMP"
-  rm "$TMP"
 }
 
 get_page() {
