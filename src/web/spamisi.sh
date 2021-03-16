@@ -85,15 +85,16 @@ get_page() {
   local FILE="$2"
   local ISLOADING="$3"
 
+  local IDNAME="$NAME"
   [ -n "$ISLOADING" ] &&
-    local NAME="SPAMISI-LOADING---$NAME"
+    local IDNAME="SPAMISI-LOADING---$NAME"
 
   local TITLE="`sed -nr "s~^.*<title>(.*)</title>.*$~\1~ ; T e; p; :e" "$FILE"`"
-  [ -n "$TITLE" ] || local TITLE="$NAME"
+  [ -n "$TITLE" ] || local TITLE="$IDNAME"
 
   cat << EOF
 
-<div id="$NAME" class="page">
+<div id="$IDNAME" class="page">
 EOF
 
   if [ -n "$ISLOADING" ]; then
@@ -113,11 +114,11 @@ EOF
 
     s~ id=\"(filter-based-on-position|_daily|_dailytotal|_monthly|_monthlytotal|_topusers|_topcities|_usertotal|_progress)\"~& class=\"nojs-hide\"~g
 
-    s~ id=\"~ id=\"$NAME---~g
+    s~ id=\"~ id=\"$IDNAME---~g
 
-    s~(<a href=\"#)([^\"])~\1$NAME---\2~g
+    s~(<a href=\"#)([^\"])~\1$IDNAME---\2~g
 
-    s~(<a href=\"#)(\")~\1$NAME\2~g
+    s~(<a href=\"#)(\")~\1$IDNAME\2~g
 
     s~(<a href=\"/[^\"]*)/(\")~\1\2~g
     t l
@@ -174,11 +175,10 @@ EOF
 }
 .link {
   color: #090;
-  text-decoration: underline;   
+  text-decoration: underline;
 }
 .link:hover,
 .link:focus {
-  color: #090;
   background-color: #efe;
   cursor: pointer;
 }
