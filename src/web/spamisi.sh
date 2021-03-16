@@ -125,6 +125,8 @@ EOF
     :l
     s~(<a href=\"/[^\"/]*)/~\1--~g
     t l
+
+    s~(<a)( href=\")/($NAME\")~\1 class=\"selflink\"\2#\3~g
     s~(<a)( href=\")/([^\"/]*\")~\1 class=\"redlink\"\2#\3~g
   "
 
@@ -181,6 +183,12 @@ EOF
 .link:focus {
   background-color: #efe;
   cursor: pointer;
+}
+
+.selflink {
+  color: #fff;
+  background-color: #000;
+  text-decoration: none;
 }
 </style>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
