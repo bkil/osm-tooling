@@ -51,24 +51,24 @@ get_pages() {
   local HTML="$3"
 
   local IDS="$OUT/downloaded-ids.txt"
-  local TMP="$OUT/redlinked.html.tmp"
-  rm "$IDS" 2>/dev/null
 
   local MAIN="`echo "$URL" | sed "s~^.*://[^/]*/~$HTML/~"`"
+
+  get_file_list "$HTML" "$MAIN" |
+  cut -d " " -f 2 |
+  sort -u > "$IDS"
+
+  local IDREGEX="`sed ":l; N; s~\n~|~g; t l" "$IDS"`"
 
   get_file_list "$HTML" "$MAIN" |
   {
     local ISLOADING="1"
     while read FILE NAME; do
-      echo "$NAME" >> "$IDS"
-
       get_page "$NAME" "$FILE" "$ISLOADING"
       local ISLOADING=""
     done
-  } > "$TMP"
-  local IDREGEX="`sed ":l; N; s~\n~|~g; t l" "$IDS"`"
-  sed -r "s~(<a class=\")red(link\" href=\"#($IDREGEX)\")~\1\2~g" "$TMP"
-  rm "$TMP"
+  } |
+  sed -r "s~(<a class=\")red(link\" href=\"#($IDREGEX)\")~\1\2~g"
 }
 
 get_file_list() {
