@@ -152,11 +152,11 @@ post_process_page() {
 
     s~(<a( class=\"selflink\")? href=\"/[^\"]*)/(\")~\1\3~g
 
-    s~(<a)( href=\"[^#/][^\"]*\">)~\1 class=\"redlink\" target=\"_blank\"\2~g
+    s~(<a)( href=\"[^#/][^\"]*\")( target=\"[^\"]*\")?(>)~\1 target=\"_blank\"\2\4~g
 
     s~(<a)( href=\"/)~\1 class=\"redlink\"\2~g
     s~(<a class=\")red(link\" href=\"/($IDREGEX)\")~\1\2~g
-    s~(<a class=\"redlink\")( href=\")/([^\"]*\")~\1 target=\"_blank\"\2${URLBASE}\3~g
+    s~(<a) class=\"redlink\"( href=\")/([^\"]*\")~\1 target=\"_blank\"\2${URLBASE}\3~g
 
     t l
     :l
@@ -197,9 +197,6 @@ EOF
   background-color: #770;
 }
 
-.redlink {
-  color: #900;
-}
 .link {
   color: #090;
   text-decoration: underline;
