@@ -179,6 +179,23 @@ post_process_page() {
     s~(<a class=\"(self)?link\" href=\"/[^\"/]*)/~\1--~g
     t l
     s~(<a class=\"(self)?link\" href=\")/~\1#~g
+  " |
+  minify
+}
+
+minify() {
+  sed -r "
+    s~([<>\s]|^)</?strong>|</?strong>([&<>\s]|$)~\1\2~g
+    s~</?strong>~ ~g
+    s~ tabindex=\"[^\"]*\"~~g
+    s~ +/>~/>~g
+    s~<span style=\"color\: blue;\">(<abbr [^<>]*>[^<>]*</abbr>)</span>~\1~g
+    s~<span style=\"color\: blue;\">(<abbr title=\"[^\"<>]*)$~\1~g
+    s~^([^\"<>]*\">[^<>]*</abbr>)</span>~\1~g
+    s~<span style=\"color\: blue;\">([^<>]*)</span>~<i>\1</i>~g
+
+    s~(<tr>)<th><a href=\"#[^\"]*\">(@id|Identifier)</a></th>((<th><a [^>]*>[^<>]*</a></th>)*)(<th><a [^>]*>[^<>]*</a></th>)(</tr>)~\1\5\3\6~
+    s~(<tr><td><a[^<>]* href=\"https\://www\.openstreetmap\.org/[^/]*/[0-9]+\"[^<>]*>)[0-9]+(</a></td>(<td>[^<>]*</td>)*)<td>([^<>]*)</td>(</tr>)~\1\4\2\5~g
   "
 }
 
@@ -227,6 +244,10 @@ EOF
   color: #fff;
   background-color: #000;
   text-decoration: none;
+}
+
+abbr, i {
+  color: blue;
 }
 </style>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
