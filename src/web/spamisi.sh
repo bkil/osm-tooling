@@ -2,6 +2,8 @@
 # Test: https://bkil.gitlab.io/spamisi/
 
 main() {
+  OBFUSCATEID="1"
+
   local OUT="out"
   mkdir -p "$OUT" || exit 1
   local HTML="$OUT/html"
@@ -63,10 +65,10 @@ get_pages() {
 
   get_file_list "$HTML" "$MAIN" |
   {
-    local ISLOADING="1"
+    local PAGEIDX="0"
     while read FILE; do
-      get_page "$FILE" "$ISLOADING"
-      local ISLOADING=""
+      get_page "$FILE" "$PAGEIDX"
+      local PAGEIDX="`expr $PAGEIDX + 1`"
     done
   } |
   post_process_page "$IDREGEX" "$URLBASE"
@@ -91,7 +93,10 @@ get_file_list() {
 
 get_page() {
   local FILE="$1"
-  local ISLOADING="$2"
+  local PAGEIDX="$2"
+
+  local ISLOADING=""
+  [ "$PAGEIDX" = 0 ] && ISLOADING="1"
 
   local ENDPOINT="`echo "$FILE" | sed "s~^$HTML/~~ ; s~/index.html$~~ ; s~\.html$~~"`"
   local NAME="`echo "$ENDPOINT" | sed "s~/~--~g"`"
@@ -99,6 +104,10 @@ get_page() {
   local IDNAME="$NAME"
   [ -n "$ISLOADING" ] &&
     local IDNAME="SPAMISI-LOADING---$NAME"
+
+  local PRE="$PAGEIDX"
+  [ "$IDNAME" = "osm--housenumber-stats--hungary" ] &&
+    local PRE="${IDNAME}---"
 
   local TITLE="`sed -nr "s~^.*<title>(.*)</title>.*$~\1~ ; T e; p; :e" "$FILE"`"
   [ -n "$TITLE" ] || local TITLE="$IDNAME"
@@ -120,9 +129,9 @@ EOF
 
   fgrep -v "<!DOCTYPE html>" "$FILE" |
   sed -r "
-    s~ id=\"~ id=\"$IDNAME---~g
+    s~ id=\"~ id=\"${PRE}~g
 
-    s~(<a href=\"#)([^\"])~\1$IDNAME---\2~g
+    s~(<a href=\"#)([^\"])~\1${PRE}\2~g
 
     s~(<a href=\"#)(\")~\1$IDNAME\2~g
 
