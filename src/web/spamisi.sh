@@ -153,6 +153,11 @@ post_process_page() {
   local IDREGEX="$1"
   local URLBASE="$2"
 
+  sed '
+    s~<div style="display: none;"><div id="[^"]*str-toolbar-overpass-wait" data-value="Waiting for Overpass..."></div><div id="[^"]*str-toolbar-overpass-error" data-value="Error from Overpass: "></div><div id="[^"]*str-toolbar-reference-wait" data-value="Creating from reference..."></div><div id="[^"]*str-toolbar-reference-error" data-value="Error from reference: "></div></div><a[^<>]* href="https://overpass-turbo.eu/">Overpass turbo</a> ¦ ~~g
+
+    s~<div style="display: none;"><div id="[^"]*str-gps-wait" data-value="Waiting for GPS..."></div><div id="[^"]*str-gps-error" data-value="Error from GPS: "></div><div id="[^"]*str-overpass-wait" data-value="Waiting for Overpass..."></div><div id="[^"]*str-overpass-error" data-value="Error from Overpass: "></div><div id="[^"]*str-relations-wait" data-value="Waiting for relations..."></div><div id="[^"]*str-relations-error" data-value="Error from relations: "></div><div id="[^"]*str-redirect-wait" data-value="Waiting for redirect..."></div></div>~~g
+    ' |
   sed -r "
     s~^.*<body>~~
     s~</body></html>$~~
@@ -231,6 +236,10 @@ EOF
 </style>
 
 </head><body>
+<div style="display: none;"><div id="str-toolbar-overpass-wait" data-value="Waiting for Overpass..."></div><div id="str-toolbar-overpass-error" data-value="Error from Overpass: "></div><div id="str-toolbar-reference-wait" data-value="Creating from reference..."></div><div id="str-toolbar-reference-error" data-value="Error from reference: "></div></div>
+
+<div style="display: none;"><div id="str-gps-wait" data-value="Waiting for GPS..."></div><div id="str-gps-error" data-value="Error from GPS: "></div><div id="str-overpass-wait" data-value="Waiting for Overpass..."></div><div id="str-overpass-error" data-value="Error from Overpass: "></div><div id="str-relations-wait" data-value="Waiting for relations..."></div><div id="str-relations-error" data-value="Error from relations: "></div><div id="str-redirect-wait" data-value="Waiting for redirect..."></div></div>
+
 <div class="pages">
 EOF
 }
