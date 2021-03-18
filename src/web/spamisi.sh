@@ -184,6 +184,8 @@ post_process_page() {
 }
 
 minify() {
+  # https://html.spec.whatwg.org/multipage/syntax.html#void-elements
+  # https://html.spec.whatwg.org/multipage/syntax.html#syntax-text
   sed -r "
     s~([<>\s]|^)</?strong>|</?strong>([&<>\s]|$)~\1\2~g
     s~</?strong>~ ~g
@@ -196,18 +198,28 @@ minify() {
 
     s~(<tr>)<th><a href=\"#[^\"]*\">(@id|Identifier)</a></th>((<th><a [^>]*>[^<>]*</a></th>)*)(<th><a [^>]*>[^<>]*</a></th>)(</tr>)~\1\5\3\6~
     s~(<tr><td><a[^<>]* href=\"https\://www\.openstreetmap\.org/[^/]*/[0-9]+\"[^<>]*>)[0-9]+(</a></td>(<td>[^<>]*</td>)*)<td>([^<>]*)</td>(</tr>)~\1\4\2\5~g
+
+    s~(<(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)(|( +[^<> ]+)*)) */(>)~\1\5~g
+
+    t stripquotes
+    :stripquotes
+    s~(<[^<> ]+( +[^<>= ]+(=[^\"'\`=<> ]+)?)* +[^<>= ]+=)\"([^\"'\`=<> ]+)\" *(/>)~\1\4 \5~g
+    t stripquotes
+    s~(<[^<> ]+( +[^<>= ]+(=[^\"'\`=<> ]+)?)* +[^<>= ]+=)\"([^\"'\`=<> ]+)\"~\1\4~g
+    t stripquotes
   "
 }
 
 get_header() {
   local OUT="$1"
 
-  cat << EOF
+  cat << EOF |
 <!DOCTYPE html>
 <html lang=""><head>
 <link rel="icon" type="image/png" sizes="64x64" href="favicon.ico">
 <title>SPA-Misi</title><meta charset="UTF-8" /><style type="text/css">
 EOF
+  minify
 
   cat "$OUT/html/osm/static/osm.css"
 
@@ -250,12 +262,22 @@ abbr, i {
   color: blue;
 }
 </style>
+EOF
+
+  cat << EOF |
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <style id="style-nojs-hide">
+EOF
+  minify
+
+  cat << EOF
 .nojs-hide {
   display: none;
 }
+EOF
+
+  cat << EOF |
 </style>
 
 </head><body>
@@ -265,6 +287,7 @@ abbr, i {
 
 <div class="pages">
 EOF
+  minify
 }
 
 get_page_switching_style() {
@@ -314,10 +337,16 @@ get_footer() {
 </div>
 EOF
 
-  get_page_switching_style
-  get_version "$MAIN"
+  get_page_switching_style |
+  minify
+
+  get_version "$MAIN" |
+  minify
+
   get_js
-  get_loading_finished_style
+
+  get_loading_finished_style |
+  minify
 
   cat << EOF
 </body></html>
