@@ -1,6 +1,8 @@
 #!/bin/sh
 # Test: https://bkil.gitlab.io/spamisi/
 
+. `dirname "$0"`/stat.inc.sh
+
 main() {
   OBFUSCATEID="1"
 
@@ -31,6 +33,12 @@ download() {
   local URLBASE="$2"
   local HTML="$3"
 
+  mkdir -p "$HTML/osm/static" || exit 1
+  wget \
+    --directory-prefix="$HTML/osm/static" \
+    --no-clobber \
+    "${URLBASE}osm/static/stats.json" || exit 1
+
   wget \
     --directory-prefix="$HTML" \
     --force-directories \
@@ -45,7 +53,7 @@ download() {
     --continue \
     --compression=auto \
     --accept-regex "^${URLBASE}(robots\.txt|osm/(index\.html|static/[^/]+|([^/]+/balatonalmadi/view-[^/]+)|(filter-for|housenumber-stats)/.*|(additional|missing)-[^/]+/balatonalmadi/view-result))$" \
-    "$URL"
+    "$URL" || exit 1
 }
 
 get_pages() {
@@ -94,6 +102,8 @@ get_page() {
   local FILE="$1"
   local PAGEIDX="$2"
 
+  local JSON="out/html/osm/static/stats.json"
+
   local ISLOADING=""
   [ "$PAGEIDX" = 0 ] && ISLOADING="1"
 
@@ -137,6 +147,11 @@ EOF
 
     s~(<a)( href=\"/${ENDPOINT}/?\")~\1 class=\"selflink\"\2~g
   "
+
+  if [ "$IDNAME" = "osm--housenumber-stats--hungary" ]; then
+    cat_coverage "$JSON"
+    cat_charts "$JSON"
+  fi
 
   else
     printf "<pre>"
@@ -222,6 +237,7 @@ EOF
   minify
 
   cat "$OUT/html/osm/static/osm.css"
+  cat "barchart.css"
 
   cat << EOF
 .pages > .page {

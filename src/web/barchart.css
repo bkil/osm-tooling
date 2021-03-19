@@ -1,0 +1,111 @@
+.barchart {
+  display: flex;
+  border: 2px solid;
+  padding-right: 1rem;
+  padding-bottom: 1rem;
+  width: 90%;
+  height: 30em;
+
+  border-spacing: initial;
+  text-indent: initial;
+  box-sizing: initial;
+  border-collapse: initial;
+  text-align: center;
+  font-size: initial;
+  position: relative;
+}
+
+.barchart > caption {
+  display: block;
+  text-align: center;
+  font-size: initial;
+  position: absolute;
+  padding-top: 1rem;
+  width: 100%;
+  font-weight: bold;
+}
+
+.barchart > thead {
+  vertical-align: initial;
+  display: initial;
+  font-style: italic;
+}
+
+.barchart > thead > tr {
+  vertical-align: initial;
+  display: initial;
+}
+
+.barchart > thead > tr > th {
+  display: block;
+  font-weight: initial;
+  text-align: center;
+  position: absolute;
+
+  bottom: 0%;
+  width: 100%;
+  border: 1px dashed;
+}
+
+.barchart > thead > tr > * + th {
+  bottom: initial;
+  width: initial;
+  border: initial;
+
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+
+  transform: translateX(-50%) rotate(-90deg) translateY(+1rem);
+}
+
+.barchart > tbody {
+  width: 100%;
+  height: calc(100% - 6rem);
+  left: 1rem;
+  position: relative;
+  margin-left: 2rem;
+  display: flex;
+  vertical-align: initial;
+  text-align: initial;
+  align-self: flex-end;
+}
+
+.barchart > tbody > tr {
+  padding-top: 1rem;
+  padding-bottom: 0;
+  width: 100%;
+  display: inline-block;
+  transform: rotate(180deg);
+  direction: rtl;
+}
+
+.barchart > tbody > tr > td {
+  border-width: initial;
+  border-style: initial;
+  text-align: center;
+  transform: rotate(-195deg);
+  font-size: xx-small;
+  display: table;
+/*  width: 0.1em; // TODO: flex */
+
+  position: relative;
+  font-style: normal;
+  margin-left: 0.2rem;
+  margin-right: 0.2rem;
+  padding-top: 0.2rem;
+  height: 4em;
+}
+
+.barchart > tbody > tr > * + td {
+  transform: rotate(-180deg);
+  font-size: smaller;
+  display: table;
+  width: 80%;
+
+  background-color: #0f0;
+  padding: 0.1rem;
+  margin-bottom: 1rem;
+  margin-top: 0.3rem;
+}
