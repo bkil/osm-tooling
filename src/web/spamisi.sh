@@ -13,7 +13,7 @@ main() {
   local URL="${URLBASE}osm/index.html"
   local MAIN="`echo "$URL" | sed "s~^.*://[^/]*/~$HTML/~"`"
 
-  download "$URL" "$URLBASE" "$HTML"
+  download "$URL" "$URLBASE" "$HTML" "$OUT"
 
   {
     get_header "$OUT"
@@ -32,11 +32,20 @@ download() {
   local URL="$1"
   local URLBASE="$2"
   local HTML="$3"
+  local OUT="$4"
 
   mkdir -p "$HTML/osm/static" || exit 1
+
+  wget \
+    --no-clobber \
+    --directory-prefix="$OUT" \
+    --compression=auto \
+    "https://cdn.jsdelivr.net/npm/charts.css/dist/charts.min.css" || exit 1
+
   wget \
     --directory-prefix="$HTML/osm/static" \
     --no-clobber \
+    --compression=auto \
     "${URLBASE}osm/static/stats.json" || exit 1
 
   wget \
@@ -149,8 +158,11 @@ EOF
   "
 
   if [ "$IDNAME" = "osm--housenumber-stats--hungary" ]; then
+    echo "<div class=no-js>"
     cat_coverage "$JSON"
     cat_charts "$JSON"
+    cat_charts_css "$JSON"
+    echo "</div>"
   fi
 
   else
@@ -179,7 +191,7 @@ post_process_page() {
 
     s~(<hr />)<div>Version\: <a [^>]*>[^<>]*</a> . OSM data © OpenStreetMap contributors\.( . (Last update\: [^<>]*))?</div>$~\1\3~
 
-    s~ id=\"[^\"]*---(filter-based-on-position|_daily|_dailytotal|_monthly|_monthlytotal|_topusers|_topcities|_usertotal|_progress)\"~& class=\"nojs-hide\"~g
+    s~ id=\"[^\"]*---(filter-based-on-position|_daily|_dailytotal|_monthly|_monthlytotal|_topusers|_topcities|_usertotal|_progress)\"~& class=\"js\"~g
 
     s~(<a( class=\"selflink\")? href=\"/[^\"]*)/(\")~\1\3~g
 
@@ -230,14 +242,13 @@ get_header() {
 
   cat << EOF |
 <!DOCTYPE html>
-<html lang=""><head>
+<html lang="en"><head>
 <link rel="icon" type="image/png" sizes="64x64" href="favicon.ico">
 <title>SPA-Misi</title><meta charset="UTF-8" /><style type="text/css">
 EOF
   minify
 
   cat "$OUT/html/osm/static/osm.css"
-  cat "barchart.css"
 
   cat << EOF
 .pages > .page {
@@ -277,25 +288,22 @@ EOF
 abbr, i {
   color: blue;
 }
-</style>
 EOF
-
   cat << EOF |
+</style>
+
+<style type="text/css">
+.no-js { display: none; }
+.js { display: block; }
+</style>
+<noscript>
+  <style type="text/css">
+  .no-js { display: block; }
+  .js { display: none; }
+  </style>
+</noscript>
+
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-<style id="style-nojs-hide">
-EOF
-  minify
-
-  cat << EOF
-.nojs-hide {
-  display: none;
-}
-EOF
-
-  cat << EOF |
-</style>
-
 </head><body>
 <div style="display: none;"><div id="str-toolbar-overpass-wait" data-value="Waiting for Overpass..."></div><div id="str-toolbar-overpass-error" data-value="Error from Overpass: "></div><div id="str-toolbar-reference-wait" data-value="Creating from reference..."></div><div id="str-toolbar-reference-error" data-value="Error from reference: "></div></div>
 
@@ -328,13 +336,27 @@ get_loading_finished_style() {
   background-color: #f00;
 }
 </style>
+
+<!--  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charts.css/dist/charts.min.css"> -->
+<!--  <link rel="stylesheet" href="https://unpkg.com/charts.css/dist/charts.min.css"> -->
+
+  <style type="text/css">
+EOF
+  # if not using CDN
+  cat "out/charts.min.css"
+
+  # DEBUG comparison
+  cat "barchart.css"
+
+  cat_chart_css_fixup
+  cat << EOF
+  </style>
 EOF
 }
 
 get_js() {
   cat << EOF
 <script>
-document.getElementById("style-nojs-hide").textContent = "";
 EOF
 
   sed -r "

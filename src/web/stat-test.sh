@@ -8,7 +8,10 @@ main() {
   {
     cat_header
     cat_coverage "$JSON"
+
     cat_charts "$JSON"
+    cat_charts_css "$JSON"
+
     cat_footer
   } > "out/stat.html"
 }
@@ -26,6 +29,8 @@ EOF
 
   cat "barchart.css"
 
+  cat "out/charts.min.css"
+  cat_chart_css_fixup
   cat << EOF
 </style>
 </head>

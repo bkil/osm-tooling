@@ -9,8 +9,14 @@ cat_coverage() {
   echo "</div>"
 }
 
+cat_charts_css() {
+  cat_charts "$1" "csv2html_charts_css"
+}
+
 cat_charts() {
   local JSON="$1"
+  local CSV2HTML="${2-csv2html}"
+
   cat <<EOF |
 daily New_house_numbers,_last_2_weeks,_as_of_2021-03-15 During_this_day New_house_numbers
 dailytotal All_house_numbers,_last_2_weeks,_as_of_2021-03-15 At_the_start_of_this_day All_house_numbers
@@ -23,8 +29,23 @@ EOF
   while read STAT CAPTION X Y
   do
     get_csv "$STAT" "$JSON" |
-    csv2html "$STAT" "$CAPTION" "$X" "$Y"
+    $CSV2HTML "$STAT" "$CAPTION" "$X" "$Y"
   done
+}
+
+cat_chart_css_fixup() {
+  cat << EOF
+  .charts-css {
+    height: 30em;
+    --color: #0f0;
+  }
+  .charts-css.column.show-labels {
+    --labels-size: 4rem;
+  }
+  .charts-css.area.show-labels tbody tr th {
+    align-items: flex-end;
+  }
+EOF
 }
 
 csv2html() {
@@ -34,13 +55,59 @@ csv2html() {
   local Y="$4"
 
   cat <<EOF |
-<table class=barchart id=css-$STAT>
+<table class=barchart id=css-barchart-$STAT>
   <caption>$STAT - $CAPTION</caption>
   <thead><tr><th>$X</th><th>$Y</th></tr></thead>
 EOF
   sed "s~_~ ~g"
 
   sed -r "s~^([^ ]+) +([^ ]+) +(.*)$~  <tr><td>\3</td><td style=height:\1%>\2</td></tr>~"
+
+  cat << EOF
+</table>
+EOF
+}
+
+csv2html_charts_css() {
+  local STAT="$1"
+  local CAPTION="$2"
+  local X="$3"
+  local Y="$4"
+
+  local COMMON="show-heading show-labels show-primary-axis show-4-secondary-axes show-data-axes"
+  local COLUMN="charts-css column data-spacing-8 $COMMON"
+  local AREA="charts-css area $COMMON"
+
+  if
+    echo "$STAT" | grep -qE "dailytotal|monthlytotal"
+  then
+    local KIND="$AREA"
+  else
+    local KIND="$COLUMN"
+  fi
+
+  cat <<EOF |
+<table class="$KIND" id=css-charts-css-$STAT>
+  <caption>$STAT - $CAPTION</caption>
+  <thead><tr><th scope=col>$X</th><th scope=col>$Y</th></tr></thead>
+EOF
+  sed "s~_~ ~g"
+
+  if [ "$KIND" = "$COLUMN" ]; then
+    awk '{$1 = $1 / 100; print}' |
+    sed -r "s~^([^ ]+) +([^ ]+) +(.*)$~  <tr><th scope=row>\3</th><td style=--size:\1>\2</td></tr>~"
+  else
+    awk '
+      {
+        $1 = $1 / 100;
+        if (last != "") {
+          print last " " $0;
+        }
+        last = $1;
+      }
+    ' |
+    sed -r "s~^([^ ]+) +([^ ]+) +([^ ]+) +(.*)$~  <tr><th scope=row>\4</th><td style=\"--start:\1;--size:\2\">\3</td></tr>~"
+  fi
 
   cat << EOF
 </table>
