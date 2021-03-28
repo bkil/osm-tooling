@@ -234,7 +234,52 @@ minify() {
     t stripquotes
     s~(<[^<> ]+( +[^<>= ]+(=[^\"'\`=<> ]+)?)* +[^<>= ]+=)\"([^\"'\`=<> ]+)\"~\1\4~g
     t stripquotes
+
+    t makeEndsMeet
+    :makeEndsMeet
+    s~</(th|tr|td|)>(</?(th|tr|td|thead|tbody|table)>)~\2~g
+    t makeEndsMeet
+
+    t colspan
+    :colspan
+    s~(<td>){10}(</?(th|tr|td|thead|tbody|table)>)~<td colspan=10>\2~g
+    t colspan
+    s~(<td>){9}(</?(th|tr|td|thead|tbody|table)>)~<td colspan=9>\2~g
+    t colspan
+    s~(<td>){8}(</?(th|tr|td|thead|tbody|table)>)~<td colspan=8>\2~g
+    t colspan
+    s~(<td>){7}(</?(th|tr|td|thead|tbody|table)>)~<td colspan=7>\2~g
+    t colspan
+    s~(<td>){6}(</?(th|tr|td|thead|tbody|table)>)~<td colspan=6>\2~g
+    t colspan
+    s~(<td>){5}(</?(th|tr|td|thead|tbody|table)>)~<td colspan=5>\2~g
+    t colspan
+    s~(<td>){4}(</?(th|tr|td|thead|tbody|table)>)~<td colspan=4>\2~g
+    t colspan
+
+    s~https://www.openstreetmap.org/~http://osm.org/~g
   "
+}
+
+minify_css() {
+  sed -r "
+    s~/\*([^*]|\*+[^*/])*\*/~~
+
+    s~&~&amp;~g
+    t amp
+    :amp
+    s~([a-zA-Z0-9]) ( *[a-zA-Z0-9])~\1\&nbsp;\2~g
+    t amp
+
+    t l
+    :l
+    s~^(([^\" ]|\"[^\"]*\")*) +~\1~
+    t l
+
+    s~&nbsp;~ ~g
+    s~&amp;~\&~g
+  " "$@" |
+  sed ":l; N; s~\n~~; t l"
 }
 
 get_header() {
@@ -243,14 +288,17 @@ get_header() {
   cat << EOF |
 <!DOCTYPE html>
 <html lang="en"><head>
+<meta charset="UTF-8" /><style type="text/css">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="icon" type="image/png" sizes="64x64" href="favicon.ico">
-<title>SPA-Misi</title><meta charset="UTF-8" /><style type="text/css">
+<title>SPA-Misi</title>
 EOF
   minify
 
-  cat "$OUT/html/osm/static/osm.css"
+  {
+    cat "$OUT/html/osm/static/osm.css"
 
-  cat << EOF
+    cat << EOF
 .pages > .page {
   display: none;
 }
@@ -288,22 +336,22 @@ EOF
 abbr, i {
   color: blue;
 }
+
+.no-js { display: none; }
+.js { display: block; }
 EOF
+  } |
+  minify_css
+
   cat << EOF |
 </style>
 
-<style type="text/css">
-.no-js { display: none; }
-.js { display: block; }
-</style>
 <noscript>
   <style type="text/css">
   .no-js { display: block; }
   .js { display: none; }
   </style>
 </noscript>
-
-<meta name="viewport" content="width=device-width, initial-scale=1" />
 </head><body>
 <div style="display: none;"><div id="str-toolbar-overpass-wait" data-value="Waiting for Overpass..."></div><div id="str-toolbar-overpass-error" data-value="Error from Overpass: "></div><div id="str-toolbar-reference-wait" data-value="Creating from reference..."></div><div id="str-toolbar-reference-error" data-value="Error from reference: "></div></div>
 
@@ -345,10 +393,13 @@ EOF
   # if not using CDN
   cat "out/charts.min.css"
 
-  # DEBUG comparison
-  cat "barchart.css"
+  {
+    # DEBUG comparison
+    cat "barchart.css"
 
-  cat_chart_css_fixup
+    cat_chart_css_fixup
+  } |
+  minify_css
   cat << EOF
   </style>
 EOF
