@@ -6,7 +6,7 @@ git_get_subtrees() {
   local BRANCH="$3"
   local SUBDIR="$4"
   curl \
-    "https://$SERVER/api/v4/projects/$PROJECT/repository/tree?path=$SUBDIR&ref=$BRANCH&recursive=true"
+    "https://$SERVER/api/v4/projects/$PROJECT/repository/tree?path=$SUBDIR&ref=$BRANCH&recursive=true&per_page=100"
 }
 
 git_get_blob_raw() {

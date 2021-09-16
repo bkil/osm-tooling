@@ -9,7 +9,6 @@ main_get_git_subdirs() {
     get_subdirectories |
     while read SUBDIR; do
       git_get_subtrees "$SERVER" "$EPROJECT" "`echo "$BRANCH" | url_escape`" "`echo "$SUBDIR" | url_escape`" |
-      tee $SERVER-$EPROJECT-$BRANCH-`echo $SUBDIR|url_escape`.txt |
       jq -r '.[] | "\(.id) \(.type) \(.path)"' |
       while read ID TYPE FILENAME; do
         [ "$TYPE" = "blob" ] || continue
@@ -26,7 +25,7 @@ main_get_git_subdirs() {
 
 get_projects() {
 cat << EOF
-GNOME/gedit master
+GNOME/gedit gnome-40
 EOF
 }
 
