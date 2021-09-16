@@ -5,7 +5,7 @@
 git_get_subtrees() {
   echo git_get_subtrees "$@" >&2
   cat <<EOF
-[{"id": "6b0bd052fede796f43abed5fc4fd1d60d1934b9b", "name": "gedit-plugins-doc-stats.page", "type": "blob",    "path": "gedit-plugins-doc-stats.page", "mode": "100644"}]
+[{"id": "6b0bd052fede796f43abed5fc4fd1d60d1934b9b", "name": "gedit-plugins-doc-stats.page", "type": "blob",    "path": "help/C/gedit-plugins-doc-stats.page", "mode": "100644"}]
 EOF
 }
 
