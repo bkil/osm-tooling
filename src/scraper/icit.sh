@@ -2,7 +2,7 @@
 
 main() {
   if [ -z "$DOMAIN" ]; then
-    echo "error: need to set DOMAIN"
+    echo "error: need to set DOMAIN" >&2
     exit 1
   fi
 
