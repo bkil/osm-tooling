@@ -34,6 +34,7 @@ EOF
 wget2() {
   local OUT="$1"
   shift 1
+  echo "wget $@" >&2 #DEBUG
   sleep 3
   wget \
     --quiet \
@@ -122,7 +123,7 @@ list_channels() {
   cat << EOF
 grin.hu openstreetmap
 grin.hu openstreetmap_hour
-grin.hu ottermage
+grin.hu ottwiz_channel
 grin.hu openstreetmap_hungary
 systest.eu openstreetmap_hungary
 EOF
