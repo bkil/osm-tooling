@@ -80,7 +80,7 @@ process_cache() {
   while read -r NUM; do
     CSV="$DATADIR/chunk-$NUM.csv"
     if [ "$((CUR-NUM))" -gt 2880 ]; then
-      echo rm "$CSV" >&2
+      rm "$CSV" >&2
     else
       cat "$CSV"
     fi
