@@ -77,7 +77,7 @@ process_cache() {
   ls "$DATADIR" |
   sed -nr 's~^chunk-([0-9]+)\.csv$~\1~; T e; p; :e' |
   sort -n |
-  while read NUM; do
+  while read -r NUM; do
     CSV="$DATADIR/chunk-$NUM.csv"
     if [ "$((CUR-NUM))" -gt 2880 ]; then
       echo rm "$CSV" >&2
@@ -97,7 +97,7 @@ convert_rss() {
     <title>Change QA (via bkil-bot)</title>
 EOF
 
-  while read RCHANGE RTIME RUSER RIDS; do
+  while read -r RCHANGE RTIME RUSER RIDS; do
     RSSTIME="`date -u -R -d "$RTIME"`"
     printf '<item><title>%s moved place node %s in changeset %s</title><link>https://www.openstreetmap.org/changeset/%s</link><guid>https://www.openstreetmap.org/changeset/%s</guid><pubDate>%s</pubDate></item>\n' \
       "$RUSER" "$RIDS" "$RCHANGE" "$RCHANGE" "$RCHANGE" "$RSSTIME"
@@ -116,18 +116,25 @@ process_one() {
   printf %s "$WHICH" |
   sed 's~^~000000000~; s~^.*\(...\)\(...\)\(...\)$~\1 \2 \3~' |
   {
-    read A B C
+    read -r A B C
     get_part https://download.openstreetmap.fr/replication/europe/minute/$A/$B/$C.osc.gz |
     zcat |
     fgrep -f "$TMPIDEXP"
   } |
-  sed -r 's~<node id="([^"]+)".* timestamp="([^"]+)".* user="([^"]+)" changeset="([^"]+)" lat="([^"]+)" lon="([^"]+)".*$~\1 \2 \3 \4 \5 \6~' |
-  while read NID NTIME NUSER NCHANGE NLAT NLON; do
+  sed -r '
+    s~<node id="([^"]+)".* timestamp="([^"]+)".* user="([^"]+)" changeset="([^"]+)" lat="([^"]+)" lon="([^"]+)".*$~\1"\2"\3"\4"\5"\6~
+    s~%~%25~g
+    s~\t~%09~g
+    s~ ~%20~g
+    s~"~ ~g
+    ' |
+  while read -r NID NTIME NUSER NCHANGE NLAT NLON; do
     grep "^$NID;" "$WATCHIDF" |
     sed -r "s~^[^;]*;(([^;0]|0+[^;0])*)0*;(([^;0]|0+[^;0])*)0*$~\1 \3~" |
     {
-      read OLAT OLON
+      read -r OLAT OLON
       if ! [ "$NLAT" = "$OLAT" ] || ! [ "$NLON" = "$OLON" ]; then
+        sed -i "s~${NID};.*$~${NID};${NLAT};${NLON}~" "$WATCHIDF"
         printf "%s %s %s %s\n" "$NCHANGE" "$NID" "$NTIME" "$NUSER"
       fi
     }
