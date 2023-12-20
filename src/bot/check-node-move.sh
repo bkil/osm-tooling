@@ -64,7 +64,7 @@ fetch_ids() {
     -O - \
     --timeout=30 \
     --post-data 'data=%5Bout%3Acsv(%0A++++%3A%3A%22id%22%2C+%3A%3Alat%2C+%3A%3Alon%2C+place%2C+name%3B%0A++++false%3B+%22%3B%22)%5D%5Btimeout%3A25%5D%3B%0Aarea(id%3A3600021335)-%3E.searchArea%3B%0Anode%5B%7E%22^place$%22%7E%22^(\
-locality|village|suburb|neighbourhood|islet|town|square|quarter|plot|municipality|island|borough|county|region|subregion|city|district|state|country|supranational_union\
+country|county|city|borough|town|village|hamlet\
 )%22%5D(area.searchArea)%3B%0Aout%3B' \
     'https://overpass-api.de/api/interpreter' |
   sed "
