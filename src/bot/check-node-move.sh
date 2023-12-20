@@ -61,12 +61,18 @@ fetch_ids() {
   touch "$TMPDOWN"
   wget \
     -U- \
-    -O "$TMPDOWN" \
+    -O - \
     --timeout=30 \
-    --post-data 'data=%5Bout%3Acsv(%0A++++%3A%3A%22id%22%2C+%3A%3Alat%2C+%3A%3Alon%3B%0A++++false%3B+%22%3B%22)%5D%5Btimeout%3A25%5D%3B%0Aarea(id%3A3600021335)-%3E.searchArea%3B%0Anode%5B%22place%22%5D(area.searchArea)%3B%0Aout%3B' \
-    'https://overpass-api.de/api/interpreter'
+    --post-data 'data=%5Bout%3Acsv(%0A++++%3A%3A%22id%22%2C+%3A%3Alat%2C+%3A%3Alon%2C+place%2C+name%3B%0A++++false%3B+%22%3B%22)%5D%5Btimeout%3A25%5D%3B%0Aarea(id%3A3600021335)-%3E.searchArea%3B%0Anode%5B%7E%22^place$%22%7E%22^(\
+locality|village|suburb|neighbourhood|islet|town|square|quarter|plot|municipality|island|borough|county|region|subregion|city|district|state|country|supranational_union\
+)%22%5D(area.searchArea)%3B%0Aout%3B' \
+    'https://overpass-api.de/api/interpreter' |
+  sed "
+    s~%~%25~g
+    s~ ~%20~g
+    " > "$TMPDOWN"
 
-  grep -qvE '^[^;]+;[^;]+;[^;]+$' "$TMPDOWN" && return 1
+  grep -qvE '^[^;]+;[^;]+;[^;]+;[^;]+;.*$' "$TMPDOWN" && return 1
   [ `wc -l < "$TMPDOWN"` = 0 ] && return 1
   mv "$TMPDOWN" "$WATCHIDF"
 }
@@ -100,7 +106,8 @@ EOF
   while read -r RCHANGE RTIME RUSER RIDS; do
     RSSTIME="`date -u -R -d "$RTIME"`"
     printf '<item><title>%s moved place node %s in changeset %s</title><link>https://www.openstreetmap.org/changeset/%s</link><guid>https://www.openstreetmap.org/changeset/%s</guid><pubDate>%s</pubDate></item>\n' \
-      "$RUSER" "$RIDS" "$RCHANGE" "$RCHANGE" "$RCHANGE" "$RSSTIME"
+      "$RUSER" "$RIDS" "$RCHANGE" "$RCHANGE" "$RCHANGE" "$RSSTIME" |
+    sed "s~%20~_~g"
   done
 
   cat <<EOF
@@ -130,19 +137,19 @@ process_one() {
     ' |
   while read -r NID NTIME NUSER NCHANGE NLAT NLON; do
     grep "^$NID;" "$WATCHIDF" |
-    sed -r "s~^[^;]*;(([^;0]|0+[^;0])*)0*;(([^;0]|0+[^;0])*)0*$~\1 \3~" |
+    sed -r "s~^[^;]*;(([^;0]|0+[^;0])*)0*;(([^;0]|0+[^;0])*)0*;([^;]+);(.*)$~\1 \3 \5 \6~" |
     {
-      read -r OLAT OLON
+      read -r OLAT OLON OPLACE ONAME
       if ! [ "$NLAT" = "$OLAT" ] || ! [ "$NLON" = "$OLON" ]; then
-        sed -i "s~${NID};.*$~${NID};${NLAT};${NLON}~" "$WATCHIDF"
-        printf "%s %s %s %s\n" "$NCHANGE" "$NID" "$NTIME" "$NUSER"
+        sed -r "s~(${NID};)[^;]+;[^;]+(;.*)$~\1${NLAT};${NLON}\2~" "$WATCHIDF"
+        printf "%s %s %s %s %s %s\n" "$NCHANGE" "$NID" "$NTIME" "$NUSER" "$OPLACE" "$ONAME"
       fi
     }
   done |
   awk '
   {
     if ($1 == ochange) {
-      oids = (oids " " $2);
+      oids = (oids ", " $2 " " $5 " " $6);
     } else {
       save();
       ochange = $1;
