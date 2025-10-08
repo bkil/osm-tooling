@@ -113,11 +113,11 @@ test_module() {
 # fetch_process_parts
 
   reset_data
-  echo 4 > "$DATADIR/chunk-2004.xml"
-  echo 3 > "$DATADIR/chunk-2003.xml"
-  echo 2 > "$DATADIR/chunk-2002.xml"
+  echo 4 > "$DATADIR/chunk-20004.xml"
+  echo 3 > "$DATADIR/chunk-20003.xml"
+  echo 2 > "$DATADIR/chunk-20002.xml"
   echo 1 > "$DATADIR/chunk-1.xml"
-  assert 'CUR=3000 process_cache && { cat "$DATADIR/chunk-1.xml" 2>/dev/null; true; }' '' '2\n3\n4\n'
+  assert 'CUR=30000 process_cache && { cat "$DATADIR/chunk-1.xml" 2>/dev/null; true; }' '' '2\n3\n4\n'
 }
 
 test_system() {

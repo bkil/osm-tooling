@@ -176,7 +176,7 @@ process_cache() {
   sort -n |
   while read -r NUM; do
     CSV="$DATADIR/chunk-$NUM.xml"
-    if [ "$((CUR-NUM))" -gt 2880 ]; then
+    if [ "$((CUR-NUM))" -gt 28800 ]; then
       rm "$CSV"
     else
       cat "$CSV"
