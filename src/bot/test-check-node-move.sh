@@ -100,7 +100,21 @@ test_module() {
     "update_get_moved_nodes $T && { echo; cat $T; }" \
     '42 2024-01-01 A%%20USER 666 47.1 19.1\n' \
 '
-42 47.100 19.100 city Budapest\n'
+42 47.1 19.1 city Budapest\n'
+
+  printf -- '42 47.1234567 19.7654321 city Budapest\n' > "$T"
+  assert \
+    "update_get_moved_nodes $T && { echo; cat $T; }" \
+    '42 2024-01-01 A%%20USER 666 47.12345669 19.76543212\n' \
+'
+42 47.12345669 19.76543212 city Budapest\n'
+
+  printf -- '42 47.1234 19.4321 city Budapest\n' > "$T"
+  assert \
+    "update_get_moved_nodes $T && { echo; cat $T; }" \
+    '42 2024-01-01 A%%20USER 666 47.12338 19.3212\n' \
+'666 42 2024-01-01 A%%20USER city Budapest\n
+42 47.12338 19.3212 city Budapest\n'
 
   printf -- '42 47.1 19.1 city Budapest\n' > "$T"
   assert \

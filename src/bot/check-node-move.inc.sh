@@ -49,11 +49,18 @@ osc2tsv() {
     '
 }
 
+round() {
+  printf "%.4f" "$1"
+}
+
 update_get_moved_nodes() {
-  local UGMNF NID NTIME NUSER NCHANGE NLAT NLON OLAT OLON OPLACE ONAME
+  local UGMNF NID NTIME NUSER NCHANGE NLAT NLON NLAT2 NLON2 OLAT OLON OPLACE ONAME
 
   readonly UGMNF="$1"
   while read -r NID NTIME NUSER NCHANGE NLAT NLON; do
+    NLAT2="`round "$NLAT"`"
+    NLON2="`round "$NLON"`"
+
     fgrep "$NID " "$UGMNF" |
     grep "^$NID " |
     sed -rn "
@@ -64,9 +71,13 @@ update_get_moved_nodes() {
       " |
     {
       read -r OLAT OLON OPLACE ONAME
+      OLAT="`round "$OLAT"`"
+      OLON="`round "$OLON"`"
       if ! [ "$NLAT" = "$OLAT" ] || ! [ "$NLON" = "$OLON" ]; then
         sed -i -r "s~(${NID} )[^ ]+ [^ ]+( .*)$~\1${NLAT} ${NLON}\2~" "$UGMNF"
-        printf "%s %s %s %s %s %s\n" "$NCHANGE" "$NID" "$NTIME" "$NUSER" "$OPLACE" "$ONAME"
+        if ! [ "$NLAT2" = "$OLAT" ] || ! [ "$NLON2" = "$OLON" ]; then
+          printf "%s %s %s %s %s %s\n" "$NCHANGE" "$NID" "$NTIME" "$NUSER" "$OPLACE" "$ONAME"
+        fi
       fi
     }
   done
